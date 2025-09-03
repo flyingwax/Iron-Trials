@@ -1,0 +1,63 @@
+{
+  "levelMilestones": [30, 50, 70, 80, 90, 99],
+  "questMilestones": [
+    "Quest Point Cape",
+    "Achievement Diary Cape",
+    "Fire Cape",
+    "Infernal Cape",
+    "Max Cape",
+    "Dragon Slayer",
+    "Recipe for Disaster",
+    "Monkey Madness"
+  ],
+  "achievementMilestones": [
+    "Achievement Diary",
+    "Diary Cape",
+    "Max Cape",
+    "Combat Achievements"
+  ],
+  "rareDrops": [
+    "bandos",
+    "armadyl",
+    "saradomin",
+    "zamorak",
+    "guthix",
+    "abyssal",
+    "dragon warhammer",
+    "twisted bow",
+    "scythe",
+    "rapier",
+    "blade",
+    "dragon axe",
+    "dragon pickaxe",
+    "dragon harpoon",
+    "pet",
+    "baby",
+    "dragon full helm",
+    "dragon platebody",
+    "dragon platelegs",
+    "dragon boots"
+  ],
+  "bossKills": [
+    "Kraken",
+    "Zulrah",
+    "Vorkath",
+    "Hydra",
+    "Gauntlet",
+    "Corrupted Gauntlet",
+    "Chambers of Xeric",
+    "Theatre of Blood",
+    "Tombs of Amascut",
+    "Nex",
+    "Kalphite Queen",
+    "King Black Dragon"
+  ],
+  "customMilestones": {
+    "First Fire Cape": 100,
+    "Quest Cape": 200,
+    "Max Cape": 500,
+    "First Pet": 150,
+    "Dragon Slayer": 50,
+    "Recipe for Disaster": 75
+  }
+} 
