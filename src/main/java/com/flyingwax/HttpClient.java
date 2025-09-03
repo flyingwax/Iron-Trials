@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 @Slf4j
@@ -81,7 +82,7 @@ public class HttpClient
         });
     }
 
-    public CompletableFuture<BingoData> getBingoData(String serverUrl, String groupId)
+    public CompletableFuture<List<BingoData>> getBingoData(String serverUrl, String groupId)
     {
         return CompletableFuture.supplyAsync(() -> {
             try
@@ -97,7 +98,7 @@ public class HttpClient
                     if (response.isSuccessful() && response.body() != null)
                     {
                         String json = response.body().string();
-                        return objectMapper.readValue(json, BingoData.class);
+                        return objectMapper.readValue(json, objectMapper.getTypeFactory().constructCollectionType(List.class, BingoData.class));
                     }
                     else
                     {

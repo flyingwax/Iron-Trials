@@ -13,6 +13,7 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 @Slf4j
@@ -133,11 +134,22 @@ public class IronTrialsPanel extends PluginPanel
                 GroupData groupData = plugin.getHttpClient().getGroupData(plugin.getConfig().serverUrl(), plugin.getConfig().groupId()).get();
                 if (groupData != null)
                 {
-                    SwingUtilities.invokeLater(() -> {
-                        rosterPanel.updateData(groupData);
-                        feedPanel.updateData(groupData);
-                        log.info("Data refreshed successfully");
-                    });
+                                    SwingUtilities.invokeLater(() -> {
+                    rosterPanel.updateData(groupData);
+                    feedPanel.updateData(groupData);
+                    
+                    // Get bingo data
+                    try {
+                        List<BingoData> bingoData = plugin.getHttpClient().getBingoData(plugin.getConfig().serverUrl(), plugin.getConfig().groupId()).get();
+                        if (bingoData != null) {
+                            bingoPanel.updateData(bingoData);
+                        }
+                    } catch (Exception e) {
+                        log.error("Error loading bingo data", e);
+                    }
+                    
+                    log.info("Data refreshed successfully");
+                });
                 }
                 else
                 {

@@ -8,6 +8,8 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Comparator;
 
 @Slf4j
 public class BingoPanel extends JPanel
@@ -24,7 +26,7 @@ public class BingoPanel extends JPanel
         setLayout(new BorderLayout());
 
         // Title
-        JLabel titleLabel = new JLabel("Bingo Board");
+        JLabel titleLabel = new JLabel("Bingo Boards");
         titleLabel.setFont(FontManager.getRunescapeBoldFont());
         titleLabel.setForeground(Color.WHITE);
         titleLabel.setBorder(new EmptyBorder(0, 0, 10, 0));
@@ -33,7 +35,7 @@ public class BingoPanel extends JPanel
         // Content panel
         contentPanel = new JPanel();
         contentPanel.setBackground(ColorScheme.DARK_GRAY_COLOR);
-        contentPanel.setLayout(new BorderLayout());
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
         
         JScrollPane scrollPane = new JScrollPane(contentPanel);
         scrollPane.setBackground(ColorScheme.DARK_GRAY_COLOR);
@@ -41,29 +43,91 @@ public class BingoPanel extends JPanel
         add(scrollPane, BorderLayout.CENTER);
     }
 
-    public void updateData(BingoData bingoData)
+    public void updateData(List<BingoData> bingoBoards)
     {
+        log.info("Updating bingo panel with {} boards", bingoBoards != null ? bingoBoards.size() : 0);
         contentPanel.removeAll();
         
-        if (bingoData == null || bingoData.getTiles() == null)
+        if (bingoBoards == null || bingoBoards.isEmpty())
         {
+            log.warn("No bingo data available");
             contentPanel.add(new JLabel("No bingo data available"));
+            contentPanel.revalidate();
+            contentPanel.repaint();
             return;
         }
 
-        List<BingoTile> tiles = bingoData.getTiles();
-        int size = bingoData.getSize();
+        // Get the logged-in player's name
+        String loggedInPlayer = plugin.getConfig().playerName();
+        
+        // Sort boards: logged-in player first, then alphabetically
+        List<BingoData> sortedBoards = new ArrayList<>(bingoBoards);
+        sortedBoards.sort((a, b) -> {
+            String playerA = a.getPlayerName();
+            String playerB = b.getPlayerName();
+            
+            // Logged-in player goes first
+            if (playerA.equals(loggedInPlayer)) return -1;
+            if (playerB.equals(loggedInPlayer)) return 1;
+            
+            // Then sort alphabetically
+            return playerA.compareToIgnoreCase(playerB);
+        });
+
+        // Create board panels
+        for (BingoData board : sortedBoards)
+        {
+            JPanel boardPanel = createBoardPanel(board);
+            contentPanel.add(boardPanel);
+            contentPanel.add(Box.createVerticalStrut(10)); // Reduced spacing between boards
+        }
+
+        contentPanel.revalidate();
+        contentPanel.repaint();
+    }
+
+    private JPanel createBoardPanel(BingoData board)
+    {
+        JPanel boardPanel = new JPanel();
+        boardPanel.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+        boardPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(ColorScheme.LIGHT_GRAY_COLOR, 1),
+            new EmptyBorder(5, 5, 5, 5)
+        ));
+        boardPanel.setLayout(new BorderLayout());
+
+        // Board title
+        String loggedInPlayer = plugin.getConfig().playerName();
+        String playerName = board.getPlayerName();
+        String titleText = playerName;
+        
+        // Highlight if it's the logged-in player
+        if (playerName.equals(loggedInPlayer))
+        {
+            titleText = "★ " + playerName + " (You) ★";
+        }
+        
+        JLabel titleLabel = new JLabel(titleText);
+        titleLabel.setFont(FontManager.getRunescapeBoldFont());
+        titleLabel.setForeground(playerName.equals(loggedInPlayer) ? new Color(255, 215, 0) : Color.WHITE);
+        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        titleLabel.setBorder(new EmptyBorder(0, 0, 5, 0));
+        
+        boardPanel.add(titleLabel, BorderLayout.NORTH);
+
+        // Create bingo grid
+        List<BingoTile> tiles = board.getTiles();
+        int size = board.getSize();
         
         if (size <= 0)
         {
             size = (int) Math.ceil(Math.sqrt(tiles.size()));
         }
 
-        // Create bingo grid
         JPanel gridPanel = new JPanel();
-        gridPanel.setBackground(ColorScheme.DARK_GRAY_COLOR);
-        gridPanel.setLayout(new GridLayout(size, size, 2, 2));
-        gridPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+        gridPanel.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+        gridPanel.setLayout(new GridLayout(size, size, 1, 1));
+        gridPanel.setBorder(new EmptyBorder(2, 2, 2, 2));
 
         for (int i = 0; i < size * size; i++)
         {
@@ -79,13 +143,14 @@ public class BingoPanel extends JPanel
                 JPanel emptyPanel = new JPanel();
                 emptyPanel.setBackground(ColorScheme.MEDIUM_GRAY_COLOR);
                 emptyPanel.setBorder(BorderFactory.createLineBorder(ColorScheme.LIGHT_GRAY_COLOR));
+                emptyPanel.setPreferredSize(new Dimension(35, 35));
+                emptyPanel.setMinimumSize(new Dimension(35, 35));
                 gridPanel.add(emptyPanel);
             }
         }
 
-        contentPanel.add(gridPanel, BorderLayout.CENTER);
-        contentPanel.revalidate();
-        contentPanel.repaint();
+        boardPanel.add(gridPanel, BorderLayout.CENTER);
+        return boardPanel;
     }
 
     private JPanel createTilePanel(BingoTile tile)
@@ -94,32 +159,37 @@ public class BingoPanel extends JPanel
         panel.setBackground(tile.isCompleted() ? Color.GREEN.darker() : ColorScheme.MEDIUM_GRAY_COLOR);
         panel.setBorder(BorderFactory.createLineBorder(ColorScheme.LIGHT_GRAY_COLOR));
         panel.setLayout(new BorderLayout());
+        panel.setPreferredSize(new Dimension(35, 35));
+        panel.setMinimumSize(new Dimension(35, 35));
 
-        // Tile description
-        JTextArea descArea = new JTextArea(tile.getDescription());
-        descArea.setFont(FontManager.getRunescapeSmallFont());
-        descArea.setForeground(tile.isCompleted() ? Color.WHITE : Color.LIGHT_GRAY);
-        descArea.setBackground(panel.getBackground());
-        descArea.setLineWrap(true);
-        descArea.setWrapStyleWord(true);
-        descArea.setEditable(false);
-        descArea.setBorder(new EmptyBorder(5, 5, 5, 5));
+        // Tile description (shortened)
+        String shortDesc = tile.getDescription();
+        if (shortDesc.length() > 15)
+        {
+            shortDesc = shortDesc.substring(0, 12) + "...";
+        }
+        
+        JLabel descLabel = new JLabel(shortDesc);
+        descLabel.setFont(FontManager.getRunescapeSmallFont());
+        descLabel.setForeground(tile.isCompleted() ? Color.WHITE : Color.LIGHT_GRAY);
+        descLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        descLabel.setBorder(new EmptyBorder(1, 1, 1, 1));
 
         // Points
-        JLabel pointsLabel = new JLabel(tile.getPoints() + " pts");
+        JLabel pointsLabel = new JLabel(tile.getPoints() + "p");
         pointsLabel.setFont(FontManager.getRunescapeSmallFont());
         pointsLabel.setForeground(Color.YELLOW);
         pointsLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        pointsLabel.setBorder(new EmptyBorder(2, 0, 2, 0));
+        pointsLabel.setBorder(new EmptyBorder(0, 0, 0, 0));
 
         // Completion info
         if (tile.isCompleted())
         {
-            JLabel completedLabel = new JLabel("✓ " + tile.getCompletedBy());
+            JLabel completedLabel = new JLabel("✓");
             completedLabel.setFont(FontManager.getRunescapeSmallFont());
             completedLabel.setForeground(Color.GREEN);
             completedLabel.setHorizontalAlignment(SwingConstants.CENTER);
-            completedLabel.setBorder(new EmptyBorder(2, 0, 2, 0));
+            completedLabel.setBorder(new EmptyBorder(0, 0, 0, 0));
 
             JPanel infoPanel = new JPanel();
             infoPanel.setBackground(panel.getBackground());
@@ -127,12 +197,12 @@ public class BingoPanel extends JPanel
             infoPanel.add(pointsLabel, BorderLayout.NORTH);
             infoPanel.add(completedLabel, BorderLayout.SOUTH);
 
-            panel.add(descArea, BorderLayout.CENTER);
+            panel.add(descLabel, BorderLayout.CENTER);
             panel.add(infoPanel, BorderLayout.SOUTH);
         }
         else
         {
-            panel.add(descArea, BorderLayout.CENTER);
+            panel.add(descLabel, BorderLayout.CENTER);
             panel.add(pointsLabel, BorderLayout.SOUTH);
         }
 

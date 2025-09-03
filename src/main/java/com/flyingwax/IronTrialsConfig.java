@@ -77,7 +77,7 @@ public interface IronTrialsConfig extends Config
     )
     default String playerName()
     {
-        return "";
+        return "IronManPro";
     }
 
     @ConfigSection(

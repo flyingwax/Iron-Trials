@@ -12,6 +12,7 @@ public class BingoData
 {
     private String id;
     private String name;
+    private String playerName;
     private List<BingoTile> tiles;
     private int size;
     private String status;
