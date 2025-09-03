@@ -57,6 +57,11 @@ public class IronTrialsPanel extends PluginPanel
         addTab("Feed", "feed.png", feedPanel);
         addTab("Bingo", "bingo.png", bingoPanel);
 
+        // Select Roster tab by default
+        SwingUtilities.invokeLater(() -> {
+            tabGroup.select(tabGroup.getTab(0));
+        });
+
         // Add refresh button
         JButton refreshButton = new JButton("Refresh");
         refreshButton.setBackground(ColorScheme.DARKER_GRAY_COLOR);
