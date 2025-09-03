@@ -25,6 +25,7 @@ public class RosterPanel extends PluginPanel
     private JPanel rosterView;
     private JPanel playerDetailView;
     private JPanel contentPanel;
+    private JPanel healthPanel; // Store reference to health panel
     private List<PlayerData> players = new ArrayList<>();
     private PlayerData selectedPlayer;
     
@@ -102,7 +103,7 @@ public class RosterPanel extends PluginPanel
         }
         
         // Add health bar at the very top
-        JPanel healthPanel = createHealthPanel();
+        healthPanel = createHealthPanel();
         rosterView.add(healthPanel, BorderLayout.NORTH);
         
         // Add title panel below health
@@ -113,14 +114,8 @@ public class RosterPanel extends PluginPanel
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
         contentPanel.setBackground(ColorScheme.DARK_GRAY_COLOR);
         
-        // Scroll pane for content
-        JScrollPane scrollPane = new JScrollPane(contentPanel);
-        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        scrollPane.setBackground(ColorScheme.DARK_GRAY_COLOR);
-        scrollPane.setBorder(null);
-        
-        rosterView.add(scrollPane, BorderLayout.SOUTH);
+        // Add content panel directly without scroll pane
+        rosterView.add(contentPanel, BorderLayout.SOUTH);
         
         // No refresh button needed - handled by main plugin panel
     }
@@ -436,6 +431,9 @@ public class RosterPanel extends PluginPanel
         // Store the group data in the plugin for filtering
         plugin.setGroupData(groupData);
         
+        // Update the health panel with new lives data
+        updateHealthPanel();
+        
         // Update the list with all players
         List<PlayerData> sortedPlayers = groupData.getPlayers().stream()
             .sorted(Comparator.comparing(PlayerData::getPoints).reversed())
@@ -535,7 +533,7 @@ public class RosterPanel extends PluginPanel
     private JPanel createHealthPanel()
     {
         JPanel healthPanel = new JPanel();
-        healthPanel.setLayout(new BorderLayout());
+        healthPanel.setLayout(new BoxLayout(healthPanel, BoxLayout.Y_AXIS));
         healthPanel.setBackground(ColorScheme.DARK_GRAY_COLOR);
         healthPanel.setBorder(new EmptyBorder(10, 0, 15, 0));
         
@@ -572,7 +570,10 @@ public class RosterPanel extends PluginPanel
         
         healthTitlePanel.add(centerPanel, BorderLayout.CENTER);
         
-        healthPanel.add(healthTitlePanel, BorderLayout.NORTH);
+        healthPanel.add(healthTitlePanel);
+        
+        // Add spacing between title and health bar
+        healthPanel.add(Box.createVerticalStrut(15));
         
         // Health bar
         JPanel healthBarPanel = new JPanel();
@@ -613,8 +614,24 @@ public class RosterPanel extends PluginPanel
         
         healthBarPanel.add(healthBar, BorderLayout.CENTER);
         
-        healthPanel.add(healthBarPanel, BorderLayout.CENTER);
+        healthPanel.add(healthBarPanel);
         
         return healthPanel;
+    }
+    
+    private void updateHealthPanel()
+    {
+        if (rosterView == null || healthPanel == null) return;
+        
+        // Remove the old health panel
+        rosterView.remove(healthPanel);
+        
+        // Create and add the new health panel
+        healthPanel = createHealthPanel();
+        rosterView.add(healthPanel, BorderLayout.NORTH);
+        
+        // Revalidate and repaint
+        rosterView.revalidate();
+        rosterView.repaint();
     }
 } 
