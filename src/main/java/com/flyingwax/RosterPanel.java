@@ -101,7 +101,12 @@ public class RosterPanel extends PluginPanel
             titlePanel.add(fallbackTitle);
         }
         
-        rosterView.add(titlePanel, BorderLayout.NORTH);
+        // Add health bar at the very top
+        JPanel healthPanel = createHealthPanel();
+        rosterView.add(healthPanel, BorderLayout.NORTH);
+        
+        // Add title panel below health
+        rosterView.add(titlePanel, BorderLayout.CENTER);
         
         // Content panel for player buttons
         contentPanel = new JPanel();
@@ -115,7 +120,7 @@ public class RosterPanel extends PluginPanel
         scrollPane.setBackground(ColorScheme.DARK_GRAY_COLOR);
         scrollPane.setBorder(null);
         
-        rosterView.add(scrollPane, BorderLayout.CENTER);
+        rosterView.add(scrollPane, BorderLayout.SOUTH);
         
         // No refresh button needed - handled by main plugin panel
     }
@@ -525,5 +530,91 @@ public class RosterPanel extends PluginPanel
         });
         
         return button;
+    }
+    
+    private JPanel createHealthPanel()
+    {
+        JPanel healthPanel = new JPanel();
+        healthPanel.setLayout(new BorderLayout());
+        healthPanel.setBackground(ColorScheme.DARK_GRAY_COLOR);
+        healthPanel.setBorder(new EmptyBorder(10, 0, 15, 0));
+        
+        // Health title with hearts
+        JPanel healthTitlePanel = new JPanel();
+        healthTitlePanel.setLayout(new BorderLayout());
+        healthTitlePanel.setBackground(ColorScheme.DARK_GRAY_COLOR);
+        
+        // Center panel for the title and hearts
+        JPanel centerPanel = new JPanel();
+        centerPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        centerPanel.setBackground(ColorScheme.DARK_GRAY_COLOR);
+        centerPanel.setBorder(new EmptyBorder(0, 10, 0, 0)); // Add left margin to center the title
+        
+        // Left heart
+        JLabel leftHeart = new JLabel("❤️");
+        leftHeart.setFont(new Font("Arial", Font.BOLD, 16));
+        leftHeart.setForeground(new Color(255, 50, 50));
+        
+        // Health title
+        JLabel healthTitle = new JLabel("SQUAD HEALTH");
+        healthTitle.setFont(FontManager.getRunescapeBoldFont());
+        healthTitle.setForeground(new Color(255, 215, 0));
+        
+        // Right heart
+        JLabel rightHeart = new JLabel("❤️");
+        rightHeart.setFont(new Font("Arial", Font.BOLD, 16));
+        rightHeart.setForeground(new Color(255, 50, 50));
+        rightHeart.setBorder(new EmptyBorder(0, 16, 0, 0)); // Add more left padding to match left heart spacing
+        
+        centerPanel.add(leftHeart);
+        centerPanel.add(healthTitle);
+        centerPanel.add(rightHeart);
+        
+        healthTitlePanel.add(centerPanel, BorderLayout.CENTER);
+        
+        healthPanel.add(healthTitlePanel, BorderLayout.NORTH);
+        
+        // Health bar
+        JPanel healthBarPanel = new JPanel();
+        healthBarPanel.setLayout(new BorderLayout());
+        healthBarPanel.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+        healthBarPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+        
+        // Calculate squad health based on lives
+        int currentLives = 4; // Default fallback
+        int totalLives = 4;   // Default fallback
+        
+        if (plugin != null && plugin.getGroupData() != null && plugin.getGroupData().getLives() != null) {
+            currentLives = plugin.getGroupData().getLives().getCurrent();
+            totalLives = plugin.getGroupData().getLives().getTotal();
+        }
+        
+        int healthPercentage = totalLives > 0 ? (currentLives * 100) / totalLives : 100;
+        
+        // Health bar
+        JProgressBar healthBar = new JProgressBar(0, 100);
+        healthBar.setValue(healthPercentage);
+        healthBar.setStringPainted(true);
+        healthBar.setString(currentLives + "/" + totalLives);
+        healthBar.setFont(FontManager.getRunescapeBoldFont());
+        healthBar.setForeground(new Color(255, 215, 0)); // Golden color like titles
+        
+        // Set health bar color based on percentage
+        if (healthPercentage >= 75) {
+            healthBar.setBackground(new Color(50, 50, 50));
+            healthBar.setForeground(new Color(0, 255, 0));
+        } else if (healthPercentage >= 50) {
+            healthBar.setBackground(new Color(50, 50, 50));
+            healthBar.setForeground(new Color(255, 255, 0));
+        } else {
+            healthBar.setBackground(new Color(50, 50, 50));
+            healthBar.setForeground(new Color(255, 50, 50));
+        }
+        
+        healthBarPanel.add(healthBar, BorderLayout.CENTER);
+        
+        healthPanel.add(healthBarPanel, BorderLayout.CENTER);
+        
+        return healthPanel;
     }
 } 

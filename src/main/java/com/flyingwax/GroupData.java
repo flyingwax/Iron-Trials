@@ -12,6 +12,7 @@ public class GroupData
 {
     private String id;
     private String name;
+    private LivesData lives;
     private List<PlayerData> players;
     private SeasonData currentSeason;
     private List<GameEvent> recentEvents;
